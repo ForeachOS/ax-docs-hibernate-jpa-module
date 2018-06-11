@@ -1,0 +1,55 @@
+[[EntityInterceptor]]
+= Entity intercepting
+
+== EntityInterceptor
+
+By default `JpaRepository` and `BasicRepository` (legacy) interfaces have their `save` and `delete` methods intercepted.
+Any module can then provide an `EntityInterceptor` bean that executes code before or after the entity state is being updated.
+Note that the `EntityInterceptor` listens to the repository calls and does not take into account when the actual session flushing happens (which might be at a later point in time).
+
+All beans implementing `EntityInterceptor` will automatically be detected after their owning module has bootstrapped.
+All regular Across bean ordering options apply to entity interceptors.
+If you are interested in only implementing part of the `EntityInterceptor` interface you can use the `EntityInterceptorAdapter`.
+
+.Example EntityInterceptor implementation
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+	public class MyInterceptor extends EntityInterceptorAdapter<MyEntity>
+    {
+    	@Override
+    	public boolean handles( Class<?> entityClass ) {
+    		return MyEntity.class.equals( entityClass );
+    	}
+
+    	@Override
+    	public void afterCreate( MyEntity entity ) {
+    		System.out.println( "A new entity has just been created!" );
+    	}
+    }
+----
+
+WARNING: Entity intercepting of Spring data JPA Repositories is only activated if they were created using the custom `EntityInterceptingJpaRepositoryFactoryBean`.
+If you did not activate JPA repositories using the specific `@EnableAcrossJpaRepositories`, you might have to specify the factory bean class manually.
+
+== Known limitations
+
+=== Persistable entities only
+Currently `JpaRepository` methods are only intercepted if they manage a `Persistable` entity.
+Reason for this is the use of the `isNew` method to determine a create or update event.
+Entities extending `SettableIdBasedEntity` automatically implement the required interface.
+
+=== Transactional behaviour
+The `EntityInterceptor` calls happen in the same transaction as the repository method.
+If no outer transaction is busy yet, a new one will be created that wraps calls like `beforeCreate`, `afterCreate` and the repository method.
+The transaction manager used is the transaction manager declared in the `@EnableAcrossJpaRepositories` definition.
+
+WARNING: When using multiple JPA modules with entity intercepting enabled, only a single transaction scope will kept.
+You should pay special attention to avoid transactional issues.
+
+=== Custom save/delete methods and recursive calls
+The `JpaRepositoryInterceptor` implementation used intercepts only the known `JpaRepository` methods.
+If for some reason you decide to create your own save or delete methods, these will not be intercepted.
+
+Likewise calling any `save` or `delete` method from within the repository will not trigger them to be intercepted.
+This is due to the standard proxy behaviour.

@@ -1,0 +1,66 @@
+= Module settings
+
+== Properties overview
+
+AcrossHibernateJpaModule supports the following properties:
+[source,properties]
+----
+# APPLICATION MODULE SUPPORT
+acrossHibernate.application.entity-scan= # Scan for entities in the application module. Defaults to true if only one JPA module detected.
+acrossHibernate.application.repository-scan= # Enable Spring Data JPA repositories in the application module. Defaults to true if only one JPA module detected.
+
+# JPA/HIBERNATE
+acrossHibernate.primary= # Mark the exposed beans as primary in the Across context. Default is true for the AcrossHibernateJpaModule or if only a single JPA module.
+acrossHibernate.data-source= # Name of the DataSource bean that should be resolved and used for the entity manager.
+acrossHibernate.persistence-unit-name= # Name of the persistence unit this EntityManager represents. Defaults to the module name.
+acrossHibernate.database= # Target database to operate on, auto-detected by default. Can be alternatively set using the "databasePlatform" property.
+acrossHibernate.database-platform= # Name of the target database to operate on, auto-detected by default. Can be alternatively set using the "Database" enum.
+acrossHibernate.generate-ddl=false # Initialize the schema on startup.
+acrossHibernate.hibernate.ddl-auto= # DDL mode. This is actually a shortcut for the "hibernate.hbm2ddl.auto" property. Default to "none".
+acrossHibernate.hibernate.naming.implicit-strategy= # Hibernate 5 implicit naming strategy fully qualified name.
+acrossHibernate.hibernate.naming.physical-strategy= # Hibernate 5 physical naming strategy fully qualified name.
+acrossHibernate.hibernate.use-new-id-generator-mappings= # Use Hibernate's newer IdentifierGenerator for AUTO, TABLE and SEQUENCE.
+acrossHibernate.properties.*= # Additional native properties to set on the JPA provider.
+acrossHibernate.show-sql=false # Enable logging of SQL statements.
+acrossHibernate.create-unit-of-work-factory=false # Create and expose a UnitOfWorkFactory.
+acrossHibernate.register-repository-interceptor=true # Enable EntityInterceptor support in Spring Data JpaRepository implementations.
+
+# WEB SUPPORT
+acrossHibernate.open-in-view=true # Register an open-in-view handler. Binds a JPA EntityManager to the thread for the entire processing of the request.
+acrossHibernate.persistenceContextInView.handler=FILTER # Type of open-in-view handler that should be created.
+acrossHibernate.persistenceContextInView.order= # Order of the open-in-view handler. Defaults to 'HIGHEST_PRECEDENCE + 1'.
+
+# TRANSACTION
+acrossHibernate.transaction.default-timeout= # Default transaction timeout in seconds.
+acrossHibernate.transaction.rollback-on-commit-failure= # Perform the rollback on commit failures.
+----
+
+== Spring Boot properties fallback
+The default AcrossHibernateJpaModule will also respect the default Spring Boot JPA and transaction related properties.
+However, values configured using the `acrossHibernate` prefix will always take precedence.
+
+Mapping the original Spring Boot properties allows for easy migration of an Across application using the default JPA starter, to one backed by the AcrossHibernateJpaModule.
+In the best case the developer will not have to make any property changes.
+
+.Spring Boot properties mapped to AcrossHibernateJpaModuleSettings
+[source,properties]
+----
+# JPA (JpaBaseConfiguration, HibernateJpaAutoConfiguration)
+spring.data.jpa.repositories.enabled=true # Enable JPA repositories in the application module.
+spring.jpa.database= # Target database to operate on, auto-detected by default. Can be alternatively set using the "databasePlatform" property.
+spring.jpa.database-platform= # Name of the target database to operate on, auto-detected by default. Can be alternatively set using the "Database" enum.
+spring.jpa.generate-ddl=false # Initialize the schema on startup.
+spring.jpa.hibernate.ddl-auto= # DDL mode. This is actually a shortcut for the "hibernate.hbm2ddl.auto" property. Default to "none".
+spring.jpa.hibernate.naming.implicit-strategy= # Hibernate 5 implicit naming strategy fully qualified name.
+spring.jpa.hibernate.naming.physical-strategy= # Hibernate 5 physical naming strategy fully qualified name.
+spring.jpa.hibernate.use-new-id-generator-mappings= # Use Hibernate's newer IdentifierGenerator for AUTO, TABLE and SEQUENCE.
+spring.jpa.open-in-view=true # Register OpenEntityManagerInViewInterceptor. Binds a JPA EntityManager to the thread for the entire processing of the request.
+spring.jpa.properties.*= # Additional native properties to set on the JPA provider.
+spring.jpa.show-sql=false # Enable logging of SQL statements.
+
+# TRANSACTION (TransactionProperties)
+spring.transaction.default-timeout= # Default transaction timeout in seconds.
+spring.transaction.rollback-on-commit-failure= # Perform the rollback on commit failures.
+----
+
+NOTE: A custom module will never map the original Spring Boot properties.

@@ -1,0 +1,50 @@
+= Registering entities
+
+AcrossHibernateJpaModule creates a Hibernate backed `EntityManager` for the classes assigned to it.
+Modules should tell the AcrossHibernateJpaModule where to scan for entities.
+The easiest way to do this is to register a module extension in the AcrossHibernateJpaModule with an `@EntityScan` for the correct packages.
+
+.Registering entities code implementing a HibernatePackageConfigurer
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+@ModuleConfiguration(AcrossHibernateJpaModule.NAME)
+@EntityScan( basePackageClasses = MyEntities.class )
+public class MyEntitiesConfiguration {
+}
+----
+
+The location of `MyEntitiesConfiguration` in the above example would usually be in the `extensions` child package of that module's root package.
+
+.Application module support
+The application module is automatically scanned for entities if either of the following applies:
+
+* there is only the default `AcrossHibernateJpaModule` and property `acrossHibernate.application.entity-scan` is not `false`
+* property `acrossHibernate.application.entity-scan` is `true`
+
+.Advanced configuration
+Apart from using `@EntityScan` there are different ways to register entities with AcrossHibernateJpaModule.
+To determined the entities it managed, any AcrossHibernateJpaModule creates a `HibernatePackage` with the same name as the module itself (AcrossHibernateJpaModule by default).
+
+This package determines the entire mapping context that is available in the `EntityManager`.
+When bootstrapping, the AcrossHibernateJpaModule will delegate configuration to all `HibernatePackageConfigurer` beans found, followed by looking for `@EntityScan` annotated classes in its module context.
+As such, consuming modules can also inject a `HibernatePackageConfigurer` implementation into the JPA module using `@ModuleConfiguration`.
+
+.Example code using a HibernatePackageConfigurer
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+@ModuleConfiguration(AcrossHibernateJpaModule.NAME)
+public class UserEntitiesConfiguration implements HibernatePackageConfigurer
+{
+	@Override
+	public void configureHibernatePackage( HibernatePackageRegistry hibernatePackage ) {
+		hibernatePackage.addPackageToScan( "com.foreach.across.modules.user.business" );
+	}
+}
+----
+
+The `HibernatePackageConfigurer` exposes the `HibernatePackageRegistry` which also allows you to register XML-based resources.
+
+NOTE: Unlike with `@EntityScan` the same configurer class can also be injected into multiple JPA modules.
+The `HibernatePackageRegistry.getName()` can then be used to discriminate between mapping contexts.

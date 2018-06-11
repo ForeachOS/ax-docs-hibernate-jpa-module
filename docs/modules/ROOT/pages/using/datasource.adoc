@@ -1,0 +1,17 @@
+= Specifying the datasource
+
+By default the AcrossHibernateJpaModule will use the main Across context datasource for the mapping context.
+It does so by looking for a datasource bean named `acrossDataSource`.
+
+You can specify a different datasource bean to use by setting the `acrossHibernate.data-source` property value.
+
+Alternatively, you can also create the `AcrossHibernateJpaModule` instance manually and provide a `DataSource` in the constructor.
+This will always take precedence over any configured property.
+
+[source,java]
+----
+@Bean
+public AcrossHibernateJpaModule acrossHibernateJpaModule( DataSource myDataSource ) {
+  return new AcrossHibernateJpaModule( myDataSource );
+}
+----

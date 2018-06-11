@@ -1,0 +1,15 @@
+= 1.x.x release notes
+
+== 1.1.1.RELEASE
+* most settings are now configurable through properties with Spring configuration metadata support
+* the <<HibernatePackage,hibernate package>> can now be configured adding a `HibernatePackageConfigurer` via `@ModuleConfiguration`
+
+== 1.1.0.RELEASE
+Major addition of the new `AcrossHibernateJpaModule` as a replacement for the legacy `AcrossHibernateModule`.
+
+* JPA and Spring Data repositories support
+* `AuditableSchemaInstaller` refactored to support multiple tables
+* Addition of a `HibernateSessionHolder` bean to facilitate migration to the JPA module
+
+== 1.0.0.RELEASE
+Initial public release available on http://search.maven.org/[Maven central].

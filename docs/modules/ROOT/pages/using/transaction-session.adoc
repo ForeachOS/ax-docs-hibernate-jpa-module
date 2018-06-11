@@ -1,0 +1,29 @@
+= Transaction and Session management
+
+== Transaction management
+AcrossHibernateJpaModule automatically enables transaction management in all modules.
+It exposes a single `PlatformTransactionManager` and `TransactionTemplate`.
+The default bean names are *jpaTransactionManager* and *jpaTransactionTemplate* respectively.
+
+Unless the property `acrossHibernate.primary` is `false`, the exposed beans will automatically be marked as primary and an alias *transactionManager* and *transactionTemplate* will be created as well.
+This is the default behaviour for the initial AcrossHibernateJpaModule.
+If you want a custom module to take the primary rule - for example in a <<multiple-modules,multi-module application>> - it is important to disable primary on the AcrossHibernateJpaModule and set it to `true` on your custom module.
+
+[[web-support]]
+== Web support
+If AcrossWebModule is present and the `acrossHibernate.open-in-view` property is `true` (default), the AcrossHibernateJpaModule will automatically register either a `OpenEntityManagerInViewFilter` or a `OpenEntityManagerInViewInterceptor` bean for the `EntityManager`.
+
+More advanced configuration options can be set using the `acrossHibernate.persistenceContextInView.*` properties.
+
+[[unitofworkfactory]]
+== UnitOfWorkFactory
+Usually the use of the <<web-support,Open EntityManager in View pattern>> and `@Transaction` annotations will suffice for simple use cases.
+If however you want to manually demarcate `EntityManager` scope in your code, you can also expose a `UnitOfWorkFactory` bean.
+A `UnitOfWorkFactory` allows you to easily execute a Unit of Work, code that should run in a single session.
+
+The creation of a `UnitOfWorkFactory` is controlled through the *acrossHibernate.unitOfWorkFactory* property.
+The default `UnitOfWorkFactory` only manages the `EntityManager` of the module itself.
+In case of a <<multiple-modules,multi-module>> setup, you can manually create a composite using the `CompositeUnitOfWorkFactory`.
+
+== Using the Hibernate Session
+Accessing the Hibernate `Session` directly can be done through the utility methods of the exposed `HibernateSessionHolder` bean.

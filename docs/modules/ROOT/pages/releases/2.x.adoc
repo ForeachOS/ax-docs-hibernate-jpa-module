@@ -1,0 +1,9 @@
+= 2.x.x release notes
+
+[#2-0-1]
+== 2.0.1.RELEASE
+* fix Spring Boot relaxed binding support for *acrossHibernate.* properties
+
+== 2.0.0.RELEASE
+* Compatibility update with Spring 4.2 which adds two new attributes to `@EnableAcrossJpaRepositories`.
+* `<<EntityInterceptor>>` calls will now run in the same transaction as the repository methods, if no outer transaction is active yet, a new one will be created

@@ -1,0 +1,19 @@
+= Using Spring Data JPA Repositories
+
+Use *`@EnableAcrossJpaRepositories`* in your modules to generate JPA repositories attaching to the default AcrossHibernateJpaModule `EntityManager`.
+This is a full equivalent of `@EnableJpaRepositories` but it automatically select the default `PlatformTransactionManager` and `EntityManagerFactory` created by AcrossHibernateJpaModule.
+In addition it will also enable <<EntityInterceptor,entity intercepting>>.
+
+.Application module support
+The application module is automatically scanned for Spring Data JPA repositories if either of the following applies:
+
+* there is only the default `AcrossHibernateJpaModule` and property `acrossHibernate.application.repository-scan` is not `false`
+* property `acrossHibernate.application.repository-scan` is `true`
+
+WARNING: Using the default application module repository scanning is only supported with the default AcrossHibernateJpaModule.
+Custom modules will usually need to provide their own mechanism as they will usually expose the required beans under a different name.
+
+.Using default JPA repositories
+It is possible to use the `@EnableJpaRepositories` instead if you manually specify the `PlatformTransactionManager` and `EntityManagerFactory`.
+You will however not be able to use entity intercepting unless you also specify the custom repository factory bean.
+

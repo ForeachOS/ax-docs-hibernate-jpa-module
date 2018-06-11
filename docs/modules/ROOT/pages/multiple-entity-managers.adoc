@@ -1,0 +1,140 @@
+= Multiple EntityManagers
+
+A single AcrossHibernateJpaModule represents a single `EntityManager` attached to a single datasource.
+If you require multiple `EntityManager` instances you can use AcrossHibernateJpeModule as a base for a new module.
+
+A couple of things noteworthy:
+
+* every instance creates its own `EntityManager` and builds its own mapping context
+** modules will need to specify separately which entities they want to register in which mapping context
+* every instance has its own set of <<module-settings,settings>> used for configuration
+* every instance exposes at least its own `EntityManagerFactory`, `PlatformTransactionManager` and `TransactionTemplate`
+** you should ensure that one of each is preferably marked as primary, see property `acrossHibernate.primary`
+** you should ensure all of them are exposed under a unique name to avoid conflicts (eg. by prefixing them using an `ExposedBeanDefinitionTransformer`)
+
+An application usually has to take special care when working in a configuration with multiple JPA modules.
+Usually the default AcrossHibernateJpaModule will be set as primary and additional modules only used explicitly.
+
+There are 2 ways to create additional JPA modules:
+
+* create a custom module at runtime
+* extend AcrossHibernateJpaModule to create a separate shared module
+
+== Runtime JPA module
+Creating a separate JPA module at runtime is very convenient, especially when only required in a single application.
+You can easily create a custom module using the `AcrossHibernateJpaModule.builder()`.
+
+As a minimum you should specify a unique prefix for that module, which will be used to generate the rest of the configuration options.
+
+.Example runtime JPA module and datasource
+[source,java]
+----
+@Bean
+@ConfigurationProperties("app.datasource.my")
+public DataSourceProperties myDataSourceProperties() {
+    return new DataSourceProperties();
+}
+
+@Bean
+@ConfigurationProperties("app.datasource.my")
+public DataSource myDataSource() {
+    return myDataSourceProperties().initializeDataSourceBuilder().build();
+}
+
+@Bean
+public AcrossHibernateJpaModule myJpaModule() {
+    return AcrossHibernateJpaModule.builder().prefix( "my" ).build();
+}
+----
+
+The above example defines a separate datasource which reads the properties `app.datasource.my` and creates the `DataSource` bean called `myDataSource`.
+
+The custom `AcrossHibernateJpaModule` is built using only the prefix *my*, which results in the following:
+
+* the generated module name will be `MyJpaModule`
+* all properties starting with `my.jpa` will be considered configuration properties for that module (eg. `my.jpa.generate-ddl=true`)
+* a datasource bean named *myDataSource* will be expected as the datasource for the mapping context
+* exposed beans will be prefixed with `my`, resulting in `PlatformTransactionManager` being exposed as *myJpaTransactionManager*
+
+The `AcrossHibernateJpaModuleBuilder` allows customizing all options of your module separately.
+See the javadoc or source code for all details.
+
+Entities should be attached explicitly to the separate mapping context:
+
+.Registering entities for the runtime JPA module
+[source,java]
+----
+@ModuleConfiguration("MyJpaModule")
+@EntityScan(basePackageClasses = MyEntity.class)
+public class MyEntitiesRegistrar
+{
+}
+----
+
+Likewise, using Spring Data JPA repositories requires you to configure them manually with the correct `PlatformTransactionManager` and `EntityManagerFactory` reference.
+
+.Enabling the Spring Data JPA repositories in your module
+[source,java]
+----
+@Configuration
+@EnableAcrossJpaRepositories(
+  transactionManagerRef = "myJpaTransactionManager",
+  entityManagerFactoryRef = "myEntityManagerFactory"
+)
+public class MyEntitiesConfiguration
+{
+}
+----
+
+This way, it would be perfectly possible for `MyJpaModule` to be present alongside any number of other `AcrossHibernateJpaModule` instances.
+
+== Shared JPA module
+If you want to create a new shared module building a different `EntityManager`, you can extend `AcrossHibernateJpaModule` and customize some settings.
+
+.Custom shared module
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+public class CustomConnectorModule extends AcrossHibernateJpaModule
+{
+	public static final String NAME = "CustomConnectorModule";
+
+	public CustomConnectorModule() {
+		setPropertiesPrefix( "customConnector" ); <1>
+		setExposeTransformer( new BeanPrefixingTransformer( "custom" ) ); <2>
+		setPrimary( true ); <3>
+	}
+
+	@Override
+	public String getName() {
+		return NAME; <4>
+	}
+}
+----
+
+<1> Configure a separate properties prefix.
+All properties starting with `customConnector` will be considered configuration properties for this module (eg. `customConnector.generate-ddl=true`)
+<2> Unique prefix to be added to the exposed beans.
+In this case the `PlatformTransactionManager` will be exposed as *customJpaTransactionManager*
+<3> Explicitly set this module primary.
+Do this only in the case where you want this module to always expose the primary transaction manager.
+When combining with AcrossHibernateJpaModule in the same application, it is also important to unset the default module primary status.
+You can always omit this and set the primary status using the corresponding property value instead.
+<4> As with any custom Across module, provide it a unique name.
+Providing the `public static final String NAME` allows the module to be scanned by name.
+
+If you easily want to generate Spring Boot configuration metadata for your custom properties, you could additionally extend `AcrossHibernateJpaModuleSettings` and register a seperate `@ConfigurationProperties`.
+
+.Build Spring Boot configuration metadata for the *customConnector* properties
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+@ConfigurationProperties("customConnector")
+public class CustomConnectorModuleSettings extends AcrossHibernateJpaModuleSettings
+{
+}
+----
+
+Registering entities or activating Spring Data JPA repositories is done in exactly the same way as with a separate runtime JPA module.
+
+Using a fully custom shared module also allows you to add additional configuration to your module.

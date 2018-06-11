@@ -1,0 +1,35 @@
+= 3.x.x release notes
+
+[#3-0-0]
+== 3.0.0.RELEASE
+This version requires Across 3.0.0.
+It is also a major update increasing compatibility with the Spring Boot JPA starter.
+
+The default configuration now builds on top of Spring Boot JPA support.
+
+.Naming strategy
+Due to Spring Boot compatibility, the default naming strategy being used has been changed since the previous version: the default is now a Spring naming strategy, instead of a Hibernate one.
+This can cause problems with query generation.
+
+Some issues have been mentioned regarding reserved keywords (eg. as a table or column name).
+
+You can manually revert to the previous naming strategy by setting: `acrossHibernate.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl`.
+
+.List of changes
+* when plugging a single AcrossHibernateJpaModule in an application it will transparently take over the starter JPA support on the application module
+** the single exception is the default handling of schema creation in case of a memory database: standard Spring Boot will create the schema by default whereas AcrossHibernateJpaModule will not
+* a `PlatformTransactionManager` is now always created
+** the (largely unused) configuration property to disable the `PlatformTransactionManager` has been removed
+* in addition a `TransactionTemplate` bean is now also created and exposed
+* the AcrossHibernateJpaModule will mark its exposed beans as `@Primary` by default
+** if you want another module to expose the primary beans, set the property `acrossHibernate.primary` to `false`
+** a custom module (eg. extending AcrossHibernateJpaModule) works the opposite way: it will not expose primary beans unless the relevant property is explicitly set to `true` or it is the only module in the Across context
+* several new <<module-settings,configurable properties>> have been added
+** all `spring.jpa` and `spring.transaction` configuration properties will be respected, they can also be set directly using the `acrossHibernate` prefix
+* it is now much easier to <<multiple-modules,create a separate AcrossHibernateJpaModule>> for an additional `EntityManager`
+** using `AcrossHibernateJpaModule.builder()` a custom module can now also be created at runtime
+** property handling for custom modules is much easier
+* it's now also possible to specify packages to scan for entities by injecting an `@EntityScan` annotated class into the AcrossHibernateJpaModule
+* fix compatibility with Spring Data which changes the signature of `JpaRepositoryFactoryBean`
+
+NOTE: The original AcrossHibernateModule is still present but has officially been deprecated.

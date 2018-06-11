@@ -1,0 +1,20 @@
+= Configure JPA properties
+
+Custom JPA or Hibernate properties can be set using the <<module-settings,module settings>>.
+AcrossHibernateJpaModule will attempt to detect sensible defaults, but you can manually set most properties if you prefer.
+
+.Example JPA property configuration
+[source,properties]
+----
+acrossHibernate.show-sql=true   # Show SQL statements
+acrossHibernate.database=SQL_SERVER # Manually specify the database type for the Hibernate dialect
+----
+
+Setting `acrossHibernate.generate-ddl=true` will enable automatic schema creation using Hibernate `hbm2ddl.auto=update` value.
+If you want to be more specific you can set the Hibernate value using `acrossHibernate.hibernate.ddl-auto`.
+Unlike the Spring Boot default behaviour, AcrossHibernateJpaModule will *never* automatically enable schema creation, not even for embedded databases.
+
+All properties passed to `acrossHibernate.properties.*` are passed through as Hibernate configuration properties (without the prefix).
+They will also replace any possibly generated property values if they match.
+
+NOTE: The default AcrossHibernateJpaModule also supports the `spring.jpa.*` properties.

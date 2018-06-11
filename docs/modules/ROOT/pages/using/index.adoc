@@ -1,0 +1,35 @@
+= Using AcrossHibernateJpaModule
+
+== Application module support
+The AcrossHibernateJpaModule builds a JPA `EntityManager` for a Persistence Unit with the same name, using Hibernate as the implementation engine.
+Other modules can configure mappings in the `EntityManager` by adding them to the <<HibernatePackage,HibernatePackage>> that the AcrossHibernateJpaModule handles.
+
+The AcrossHibernateJpaModule serves as an alternative for using the `spring-boot-starter-data-jpa` in a multi-module application.
+
+Using an `@AcrossApplication` with `across-autoconfigure` and `spring-boot-starter-data-jpa`, you might have JPA enabled in your application module.
+The latter however does not easily allow shared Across modules to attach to the same `EntityManager`.
+
+In an Across application module, using AcrossHibernateJpaModule should not necessarily require any changes.
+If you simply add AcrossHibernateJpaModule to your application configuration, it will transparently replace the `spring-boot-starter-data-jpa` functionality:
+
+* the single datasource will be used
+* the entire application module will be scanned for entities
+* Spring Data JPA repositories in the application module will be activated
+** compared to the default JPA starter, the AcrossHibernateJpaModule will also enable <<EntityInterceptor,entity intercepting support>>
+* a single `PlatformTransactionManager` with the default name will be available
+
+Most of the default behaviour can be controlled using the <<module-settings,module settings>>.
+If you do not want to use the default entity scan or Spring Data repository scan, you should treat the application module as if it is a shared module and <<manual-configuration,register your entities manually>>.
+
+AcrossHibernateJpaModule also makes it easier to work with <<multiple-modules,multiple entity managers>> in a single application.
+
+== Manual configuration
+In a simple application the developer probably has to do nothing to make use of the `EntityManager` provided by the AcrossHibernateJpaModule.
+If you want to use the `EntityManager` in a shared module, there's a couple of steps involved:
+
+. Add a required dependency from your module to AcrossHibernateJpaModule using fi `@AcrossDepends(required="AcrossHibernateJpaModule")`
+. <<HibernatePackage,Register the entities>> that should be managed by the shared `EntityManager`
+. Configure <<spring-data-repositories,Spring Data JPA repositories>> for you module
+
+AcrossHibernateJpaModule always creates a `PlatformTransactionManager` and enables transaction management support in all modules bootstrapping later.
+When having <<multiple-modules,multiple JPA modules>> in a single application, you will have multiple transaction managers and you will have to specify which one to use.

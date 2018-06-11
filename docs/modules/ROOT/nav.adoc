@@ -1,1 +1,22 @@
-* Creating a form
+* xref:index.adoc[Quick start]
+* xref:releases/index.adoc[Releases]
+** xref:releases/3.x.adoc[3.x]
+** xref:releases/2.x.adoc[2.x]
+** xref:releases/1.x.adoc[1.x]
+
+* xref:configuration-properties.adoc[Configuration properties]
+
+* xref:using/index.adoc[Using Hibernate JPA]
+** xref:using/datasource.adoc[Specifying the datasource]
+** xref:using/registering-entities.adoc[Registering entities]
+** xref:using/jpa-properties.adoc[Configure JPA properties]
+** xref:using/spring-data.adoc[Spring Data JPA repositories]
+** xref:using/transaction-session.adoc[Transactions & sessions]
+
+* xref:entity-intercepting.adoc[Entity intercepting]
+* xref:multiple-entity-managers.adoc[Multiple entity managers]
+
+* xref:helpers.adoc[Helper classes and utilities]
+** xref:helpers.adoc#sequence-generator[Sequence generator]
+** xref:helpers.adoc#entity-base-classes[Entity base classes]
+** xref:helpers.adoc#auditable-entities[Auditable entities]

@@ -1,0 +1,143 @@
+= Helper classes and utilities
+
+In addition to the bean infrastructure, this module also provides a set of base classes and general helpers to build a persistent domain model.
+
+[#sequence-generator]
+== AcrossSequenceGenerator
+This is a `TableGenerator` that works cross-database and can be used to work with preset, negative id values.
+Uses the `ACROSS_SEQUENCES` table created by the `AcrossSequencesInstaller` from Across core package.
+
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+	@Id
+	@GeneratedValue(generator = "seq_mm_myentity_id")
+	@GenericGenerator(
+			name = "seq_mm_myentity_id",
+			strategy = AcrossSequenceGenerator.STRATEGY,
+			parameters = {
+					@org.hibernate.annotations.Parameter(name = "sequenceName", value = "seq_mm_myentity_id"),
+					@org.hibernate.annotations.Parameter(name = "allocationSize", value = "10")
+			}
+	)
+	private Long id;
+----
+
+[#entity-base-classes]
+== Entity base classes
+
+`SettableIdBasedEntity` and `SettableIdAuditableEntity` classes are base classes for `@Entity` allowing an id to be set before persisting, using the `newEntityId` property.
+The `SettableIdAuditableEntity` extension will automatically have auditing information updated when `SpringSecurityModule` is active and entity intercepting is enabled (default).
+
+The `SettableIdBasedEntity` also implements common interfaces like `IdBasedEntity`, `Persistable` and `EntityWithDto`.
+These are used by many other standard modules to automatically hookup functionality.
+The base implementation is sufficient for many common use cases.
+
+.Minimal implementation of SettableIdAuditableEntity
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+	@Entity
+    @Table(name = "acl_entity")
+    public class MyEntity extends SettableIdAuditableEntity<MyEntity>
+    {
+    	@Id
+    	@GeneratedValue(generator = "seq_mm_myentity.id")
+    	@GenericGenerator(
+    			name = "seq_mm_myentity",
+    			strategy = AcrossSequenceGenerator.STRATEGY,
+    			parameters = {
+    					@org.hibernate.annotations.Parameter(name = "sequenceName", value = "seq_mm_myentity"),
+    					@org.hibernate.annotations.Parameter(name = "allocationSize", value = "1")
+    			}
+    	)
+    	private Long id;
+
+    	@Override
+    	public Long getId() {
+    		return id;
+    	}
+
+    	@Override
+    	public void setId( Long id ) {
+    		this.id = id;
+    	}
+    }
+----
+
+=== Spring Data repository interfaces
+`CommonJpaRepository` and `IdBasedEntityJpaRepository` are helper repository interfaces to help reduce boilerplate code.
+`CommonJpaRepository` extends the basic `JpaRepository` with the `JpaSpecificationExecutor` interface.
+`IdBasedEntityJpaRepository` is the extension tailored to `SettableIdBasedEntity` implementations that use a `Long` as id type.
+
+Using these interfaces will ensure repository integration with other modules (for example `EntityModule`).
+
+[#auditable-entities]
+== Auditable entities
+
+Any entity that implements the `Auditable<String>` interface will get auditing information set on every save or update.
+`AuditableEntity` is a `@MappedSuperClass` that implements the `Auditable<String>` interface.
+It adds auditing related columns: creation and last modification information (timestamp and principal).
+
+=== AuditableSchemaInstaller
+
+The `AuditableSchemaInstaller` is a base installer class that can easily be used to add the relevant auditing columns to multiple tables.
+
+.Example entity with Auditable properties added
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+
+@Entity
+@Table(name = "customers")
+public class Customer extends SettableIdAuditableEntity<Customer>
+{
+	@Id
+	private Long id;
+
+	@Column(name = "customerName")
+	private String customerName;
+
+}
+----
+
+.Equivalent AuditableSchemaInstaller to add the auditing columns in database
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+@Order(2)
+@Installer(description = "Adds auditable columns to specific tables", version = 1)
+public class MyAuditableInstaller extends AuditableSchemaInstaller
+{
+	@Override
+	protected Collection<String> getTableNames() {
+		return Collections.singleton( "customers" );
+	}
+}
+----
+
+Note the use of `@Order(2)` which might be necessary to ensure that your `AuditableSchemaInstaller` is run *after* running your base schema installer.
+
+After starting your application, Across will automatically add the following columns to your entities:
+
+|===
+|Column |Type |Description
+
+|created_by
+|`String`
+|The name of the principal that was creating the entity
+
+|created_date
+|`Date`
+|The time at which the object was created
+
+|modified_by
+|`String`
+|The name of the principal that was modifying the entity
+
+|modified_date
+|`Date`
+|The time at which the object was modified
+
+|
+|===
