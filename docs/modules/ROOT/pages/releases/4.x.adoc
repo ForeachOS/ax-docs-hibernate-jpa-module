@@ -4,3 +4,4 @@
 == 4.0.0.RELEASE
 * *Requires Across 5.0.0.*
 * Spring upgrade related changes
+* Registering `BasicRepositoryInterceptor` is now disabled by default, use `across-hibernate.register-repository-interceptor=true` for the old behaviour.
