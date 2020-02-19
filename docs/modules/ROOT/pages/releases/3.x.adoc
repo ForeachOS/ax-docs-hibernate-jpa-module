@@ -1,6 +1,11 @@
 = 3.x.x release notes
 
 [#3-0-0]
+== 3.1.0.RELEASE
+Bugfixes:
+* The EntityManagerFactory of the primary AcrossHibernateModule is now exposed as a primary bean
+
+[#3-0-0]
 == 3.0.0.RELEASE
 This version requires Across 3.0.0.
 It is also a major update increasing compatibility with the Spring Boot JPA starter.
