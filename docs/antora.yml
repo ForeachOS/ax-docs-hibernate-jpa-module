@@ -1,5 +1,5 @@
 name: hibernate-jpa-module
 title: "Module: Hibernate JPA"
-version: master
+version: 3.0.0
 nav:
 - modules/ROOT/nav.adoc
