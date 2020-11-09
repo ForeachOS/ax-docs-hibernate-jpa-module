@@ -1,12 +1,5 @@
 = 4.x.x release notes
 
-[#4-0-0]
-== 4.0.0.RELEASE
-
-* *Requires Across 5.0.1.*
-* Spring upgrade related changes
-* Registering `BasicRepositoryInterceptor` is now disabled by default, use `across-hibernate.register-repository-interceptor=true` for the old behaviour.
-
 [#4-1-0]
 == 4.1.0.RELEASE
 
@@ -15,3 +8,10 @@
 * Added support for DEFERRED and LAZY Jpa repositories
 * Deprecated `BasicRevisionBasedRepository` and added `BasicRevisionBasedJpaRepository`, following the deprecation of `Session.createCriteria()` in `spring-data-commons
 * Switched to JUnit5
+
+[#4-0-0]
+== 4.0.0.RELEASE
+
+* *Requires Across 5.0.1.*
+* Spring upgrade related changes
+* Registering `BasicRepositoryInterceptor` is now disabled by default, use `across-hibernate.register-repository-interceptor=true` for the old behaviour.
