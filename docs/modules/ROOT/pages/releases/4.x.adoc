@@ -8,6 +8,7 @@
 * Added support for DEFERRED and LAZY Jpa repositories
 * Deprecated `BasicRevisionBasedRepository` and added `BasicRevisionBasedJpaRepository`, following the deprecation of `Session.createCriteria()` in `spring-data-commons
 * Switched to JUnit5
+* Added Dozer DTO support to allow deep cloning of complex entities
 
 [#4-0-0]
 == 4.0.0.RELEASE
