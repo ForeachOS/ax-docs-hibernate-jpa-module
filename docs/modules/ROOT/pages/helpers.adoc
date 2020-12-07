@@ -65,6 +65,54 @@ The base implementation is sufficient for many common use cases.
     }
 ----
 
+[#entity-dto-conversion]
+=== DTO conversion
+`SettableIdBasedEntity` supports converting an entity to a hibernate detached variant through `EntityWithDto#toDto` using `DtoUtils`.
+The base implementation is a new instance of the object, to which all properties are copied over.
+
+.Example entity with relationships
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+	@Entity
+    @Table(name = "acl_entity")
+    public class MyEntity extends SettableIdAuditableEntity<MyEntity>
+    {
+    	@Id
+    	@GeneratedValue(generator = "seq_mm_myentity.id")
+    	@GenericGenerator(
+    			name = "seq_mm_myentity",
+    			strategy = AcrossSequenceGenerator.STRATEGY,
+    			parameters = {
+    					@org.hibernate.annotations.Parameter(name = "sequenceName", value = "seq_mm_myentity"),
+    					@org.hibernate.annotations.Parameter(name = "allocationSize", value = "1")
+    			}
+    	)
+    	private Long id;
+
+    	@Column(name = "name")
+    	private String name;
+
+    	@JoinColumn(name = "my-other-entity")
+    	private MyOtherEntity myOtherEntity;
+
+    	// ...
+    }
+----
+When performing `MyEntity#toDto` a new instance of `MyEntity` is created, and all of its properties are copied over.
+This means,that when, for example, the name of the entity is modified, the changes will never be flushed to the database, unless an actual save is called with this new instance.
+Depending on how modifications to the related entities are applied, such as `myOtherEntity` in the example, unintended changes can still be automatically flushed to the database, as it is copied over from the original instance.
+
+A use case where this could happen is when a property of `myOtherEntity` is updated whilst the instance is still hibernate attached, and an application validation error occurs.
+Functionally you will have blocked the update, but as the hibernate attached entity has been modified, the changes will still be flushed to the database at a certain point.
+If there is no additional validation database wise, you might end up with an incorrect state.
+
+To solve this, we've added a more advanced dto conversion using http://dozer.sourceforge.net/[Dozer].
+When using the advanced dto conversion, a deep clone will be made of the entity, which means that related entities will also be hibernate detached.
+When a property is configured as lazy loaded, the clone will instead insert a proxy, which will open a session and load the actual property when it is first called, and consequently create a deep clone of said property.
+
+Activating the advanced dto conversion, can be done via the xref:configuration-properties.adoc[configuration properties].
+
 === Spring Data repository interfaces
 `CommonJpaRepository` and `IdBasedEntityJpaRepository` are helper repository interfaces to help reduce boilerplate code.
 `CommonJpaRepository` extends the basic `JpaRepository` with the `JpaSpecificationExecutor` interface.

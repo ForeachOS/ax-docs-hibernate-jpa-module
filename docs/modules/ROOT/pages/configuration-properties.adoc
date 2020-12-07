@@ -33,6 +33,9 @@ acrossHibernate.persistenceContextInView.order= # Order of the open-in-view hand
 # TRANSACTION
 acrossHibernate.transaction.default-timeout= # Default transaction timeout in seconds.
 acrossHibernate.transaction.rollback-on-commit-failure= # Perform the rollback on commit failures.
+
+# MODULE
+across-hibernate.advanced-dto-conversion= # Whether a more advanced dto conversion should be configured for DtoUtils supporting deep clones..
 ----
 
 == Spring Boot properties fallback
