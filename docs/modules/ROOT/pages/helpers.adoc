@@ -100,7 +100,7 @@ The base implementation is a new instance of the object, to which all properties
     }
 ----
 When performing `MyEntity#toDto` a new instance of `MyEntity` is created, and all of its properties are copied over.
-This means,that when, for example, the name of the entity is modified, the changes will never be flushed to the database, unless an actual save is called with this new instance.
+This means that when, for example, the name of the entity is modified, the changes will never be flushed to the database, unless an actual save is called with this new instance.
 Depending on how modifications to the related entities are applied, such as `myOtherEntity` in the example, unintended changes can still be automatically flushed to the database, as it is copied over from the original instance.
 
 A use case where this could happen is when a property of `myOtherEntity` is updated whilst the instance is still hibernate attached, and an application validation error occurs.
